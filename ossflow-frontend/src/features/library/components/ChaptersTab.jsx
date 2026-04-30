@@ -36,7 +36,6 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useRenameChapter, useRenameByOracle } from '../api/useLibrary'
 import { useStartPipeline } from '@/features/pipeline/api/usePipeline'
-import { useStartElevenLabsDubbing, useElevenLabsJob, useStartElevenLabsBatch } from '@/features/elevenlabs/api/useElevenLabsDubbing'
 import { useStartPromote, useStartPromoteSeason } from '../api/usePromote'
 import { useOracleData } from '@/features/oracle/api/useOracle'
 import SubtitleValidationDialog from './SubtitleValidationDialog'
@@ -95,10 +94,7 @@ function ChapterRow({ video, instructionalName, onNext, hasOracle }) {
   const nav = useNavigate()
   const rename = useRenameChapter()
   const startSplit = useStartPipeline()
-  const startElevenLabs = useStartElevenLabsDubbing()
   const startPromote = useStartPromote()
-  const [elevenLabsJobId, setElevenLabsJobId] = useState(null)
-  const elevenLabsJob = useElevenLabsJob(elevenLabsJobId)
 
   const handlePromote = async () => {
     if (startPromote.isPending) return
@@ -124,50 +120,6 @@ function ChapterRow({ video, instructionalName, onNext, hasOracle }) {
       )
     }
   }
-
-  const handleElevenLabs = async () => {
-    if (startElevenLabs.isPending || elevenLabsJobId) return
-    const confirmMsg =
-      `Enviar "${video.filename}" a ElevenLabs Dubbing Studio?\n\n` +
-      `• Consume créditos de tu plan\n` +
-      `• Con marca de agua (33% menos créditos)\n` +
-      `• Resultado en <Season>/elevenlabs/ con el mismo nombre\n` +
-      `• Sigue el progreso en la sección ElevenLabs de la barra lateral`
-    if (!window.confirm(confirmMsg)) return
-    const toastId = toast.loading('Enviando a ElevenLabs…')
-    try {
-      const resp = await startElevenLabs.mutateAsync({ path: video.path })
-      const jid = resp?.job_id
-      setElevenLabsJobId(jid)
-      toast.success(`Job ${jid} iniciado`, {
-        id: toastId,
-        duration: 5000,
-        action: {
-          label: 'Ver progreso',
-          onClick: () => nav('/elevenlabs'),
-        },
-      })
-    } catch (e) {
-      const msg = e?.body?.detail || e?.message || 'Error'
-      toast.error(`ElevenLabs falló: ${msg}`, { id: toastId })
-    }
-  }
-
-  // Terminal transitions: fire a loud toast and clear the inline badge.
-  // The persistent view lives at /elevenlabs, so we don't need to keep
-  // the pill visible after completion.
-  useEffect(() => {
-    if (!elevenLabsJob.data) return
-    const { status, message, result } = elevenLabsJob.data
-    if (status === 'completed') {
-      const out = result?.output_filename || result?.output_path?.split(/[\\\/]/).pop() || 'ok'
-      toast.success(`ElevenLabs listo: ${out}`, { duration: 10000 })
-      setElevenLabsJobId(null)
-    } else if (status === 'failed') {
-      toast.error(`ElevenLabs falló: ${message || 'error'}`, { duration: 15000 })
-      setElevenLabsJobId(null)
-    }
-  }, [elevenLabsJob.data?.status, nav])
 
   useEffect(() => {
     if (editing) {
@@ -420,30 +372,6 @@ function ChapterRow({ video, instructionalName, onNext, hasOracle }) {
           >
             <ShieldCheck className="h-3 w-3 sm:mr-1" />
             <span className="hidden sm:inline">Validar</span>
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            type="button"
-            onClick={elevenLabsJobId ? () => nav('/elevenlabs') : handleElevenLabs}
-            disabled={startElevenLabs.isPending}
-            title={
-              elevenLabsJobId
-                ? 'Job en curso — click para ir a la página de ElevenLabs'
-                : 'Doblar con ElevenLabs Dubbing Studio (consume créditos del plan)'
-            }
-            className="text-violet-400 hover:text-violet-300"
-          >
-            {startElevenLabs.isPending || elevenLabsJobId ? (
-              <Loader2 className="h-3 w-3 sm:mr-1 animate-spin" />
-            ) : (
-              <Mic className="h-3 w-3 sm:mr-1" />
-            )}
-            <span className="hidden sm:inline">
-              {elevenLabsJobId
-                ? `ElevenLabs ${elevenLabsJob.data?.progress ?? 0}%`
-                : 'ElevenLabs'}
-            </span>
           </Button>
           {canPromote && (
             <Button
@@ -750,62 +678,6 @@ function SeasonPromoteButton({ seasonPath, list }) {
 }
 
 
-function SeasonElevenLabsButton({ seasonPath, list }) {
-  const nav = useNavigate()
-  const batch = useStartElevenLabsBatch()
-  // Rough filter so the confirm dialog shows a meaningful count. The
-  // server still recomputes against the actual folder so this doesn't
-  // need to be exact.
-  const candidates = (list || []).filter(
-    (v) => !v.filename?.toLowerCase().endsWith('_doblado.mp4')
-           && !v.filename?.toLowerCase().endsWith('_doblado.mkv'),
-  )
-  const onClick = async (e) => {
-    e.stopPropagation()
-    if (!seasonPath) {
-      toast.error('No se pudo inferir la ruta de la Season')
-      return
-    }
-    const msg =
-      `Enviar ${candidates.length} capítulo(s) de esta Season a ElevenLabs?\n\n` +
-      `• Se procesan en serie (1 a la vez)\n` +
-      `• Capítulos ya presentes en <Season>/elevenlabs/ se omiten\n` +
-      `• Sigue el progreso en el apartado ElevenLabs`
-    if (!window.confirm(msg)) return
-    try {
-      const resp = await batch.mutateAsync({ seasonPath })
-      const q = resp?.queued_count ?? 0
-      const s = resp?.skipped_count ?? 0
-      toast.success(
-        `Encolados ${q}${s ? ` · ${s} omitidos` : ''}`,
-        {
-          action: { label: 'Ver progreso', onClick: () => nav('/elevenlabs') },
-          duration: 6000,
-        },
-      )
-    } catch (err) {
-      toast.error(`Batch falló: ${err?.body?.detail || err?.message || 'error'}`)
-    }
-  }
-  return (
-    <Button
-      size="sm"
-      variant="outline"
-      disabled={batch.isPending || !seasonPath || candidates.length === 0}
-      onClick={onClick}
-      title="Doblar toda la Season con ElevenLabs (serial, omite ya doblados)"
-      className="text-violet-400 hover:text-violet-300"
-    >
-      {batch.isPending ? (
-        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-      ) : (
-        <Mic className="mr-1 h-3 w-3" />
-      )}
-      ElevenLabs Season
-    </Button>
-  )
-}
-
 function SeasonProcessButton({ seasonPath, list, hasOracle, oracleData }) {
   const nav = useNavigate()
   const start = useStartPipeline()
@@ -1048,7 +920,6 @@ export default function ChaptersTab({ instructional }) {
                       Icon={Captions}
                       title="Traducir subtítulos EN → ES en toda la Season (requiere subs EN previos)"
                     />
-                    <SeasonElevenLabsButton seasonPath={seasonPath} list={list} />
                     <SeasonProcessButton
                       seasonPath={seasonPath}
                       list={list}

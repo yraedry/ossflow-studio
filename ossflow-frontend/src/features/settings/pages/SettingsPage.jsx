@@ -100,11 +100,6 @@ const processingSchema = z.object({
 })
 
 const ttsSchema = z.object({
-  tts_engine: z.enum(['s2pro', 'elevenlabs', 'piper', 'kokoro']).default('elevenlabs'),
-  elevenlabs_voice_id: z.string().optional().nullable(),
-  elevenlabs_model_id: z.string().optional().nullable(),
-  piper_model_path: z.string().optional().nullable(),
-  kokoro_voice: z.enum(['em_alex', 'em_santa']).optional().nullable(),
   s2_voice_profile: z.string().optional().nullable(),
   s2_ref_text: z.string().optional().nullable(),
   s2_temperature: z.coerce.number().min(0.1).max(1.5).optional(),
@@ -596,11 +591,6 @@ function TtsSection({ settings }) {
   const form = useForm({
     resolver: zodResolver(ttsSchema),
     defaultValues: {
-      tts_engine: settings?.tts_engine || 'elevenlabs',
-      elevenlabs_voice_id: settings?.elevenlabs_voice_id || '',
-      elevenlabs_model_id: settings?.elevenlabs_model_id || 'eleven_multilingual_v2',
-      piper_model_path: settings?.piper_model_path || '/models/piper/es_ES-sharvard-medium.onnx',
-      kokoro_voice: settings?.kokoro_voice || 'em_alex',
       s2_voice_profile: settings?.s2_voice_profile || 'voice_martin_osborne_24k.wav',
       s2_ref_text:
         settings?.s2_ref_text ||
@@ -612,8 +602,6 @@ function TtsSection({ settings }) {
     },
   })
 
-  const engine = form.watch('tts_engine')
-  const kokoroVoice = form.watch('kokoro_voice')
   const currentS2Voice = form.watch('s2_voice_profile')
 
   // Load available voice WAVs from dubbing-generator. Each entry carries
@@ -634,16 +622,15 @@ function TtsSection({ settings }) {
     }
   }
   useEffect(() => {
-    if (engine === 's2pro') reloadVoices()
+    reloadVoices()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine])
+  }, [])
 
   // First-load convenience: if the saved settings have an empty
   // s2_ref_text but the selected voice has a sidecar transcript, fill
   // it in. We only do this when the field is genuinely empty so we
   // never overwrite text the user typed in but hasn't saved.
   useEffect(() => {
-    if (engine !== 's2pro') return
     const cur = form.getValues('s2_ref_text')
     if (cur && cur.trim().length > 0) return
     const v = voices.find((x) => x.id === currentS2Voice)
@@ -651,7 +638,7 @@ function TtsSection({ settings }) {
       form.setValue('s2_ref_text', v.transcript, { shouldDirty: false })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [voices, currentS2Voice, engine])
+  }, [voices, currentS2Voice])
 
   // When the user switches voices, auto-fill the reference transcript
   // from the sidecar (if any) so they don't have to retype it.
@@ -691,11 +678,6 @@ function TtsSection({ settings }) {
   const onSubmit = async (values) => {
     try {
       const payload = {
-        tts_engine: values.tts_engine,
-        elevenlabs_voice_id: values.elevenlabs_voice_id || null,
-        elevenlabs_model_id: values.elevenlabs_model_id || null,
-        piper_model_path: values.piper_model_path || null,
-        kokoro_voice: values.kokoro_voice || null,
         s2_voice_profile: values.s2_voice_profile || null,
         s2_ref_text: values.s2_ref_text || null,
         s2_temperature: values.s2_temperature,
@@ -723,71 +705,11 @@ function TtsSection({ settings }) {
             {isDirty && <Badge variant="outline" className="ml-2 border-amber-500/40 text-amber-500">sin guardar</Badge>}
           </CardTitle>
           <CardDescription>
-            Motor de síntesis para el doblaje. ElevenLabs (cloud, voice cloning, de pago) o Piper (local, voz preset ES, gratis).
+            S2-Pro: motor local de clonación de voz (Vulkan), embebido en el contenedor dubbing-generator.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="tts_engine">Motor TTS</Label>
-            <Select
-              value={engine}
-              onValueChange={(v) => form.setValue('tts_engine', v, { shouldDirty: true })}
-            >
-              <SelectTrigger id="tts_engine" className="mt-1.5">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="s2pro">S2-Pro (local, clonación de voz, Vulkan)</SelectItem>
-                <SelectItem value="elevenlabs">ElevenLabs (cloud, clonación de voz, de pago)</SelectItem>
-                <SelectItem value="piper">Piper (local, voz preset ES, gratis, rápido)</SelectItem>
-                <SelectItem value="kokoro">Kokoro-82M (local, voz preset ES, GPU, mejor prosodia)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {engine === 'elevenlabs' && (
-            <>
-              <div>
-                <Label htmlFor="elevenlabs_voice_id">Voice ID</Label>
-                <Input
-                  id="elevenlabs_voice_id"
-                  placeholder="ej: LlZr3QuzbW4WrPjgATHG"
-                  {...form.register('elevenlabs_voice_id')}
-                  className="mt-1.5 font-mono"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Voice ID pre-registrado en el dashboard de ElevenLabs (PVC o IVC).
-                </p>
-              </div>
-              <div>
-                <Label htmlFor="elevenlabs_model_id">Modelo</Label>
-                <Input
-                  id="elevenlabs_model_id"
-                  placeholder="eleven_multilingual_v2"
-                  {...form.register('elevenlabs_model_id')}
-                  className="mt-1.5 font-mono"
-                />
-              </div>
-            </>
-          )}
-
-          {engine === 'piper' && (
-            <div>
-              <Label htmlFor="piper_model_path">Path del modelo Piper</Label>
-              <Input
-                id="piper_model_path"
-                placeholder="/models/piper/es_ES-sharvard-medium.onnx"
-                {...form.register('piper_model_path')}
-                className="mt-1.5 font-mono"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Path absoluto al .onnx dentro del contenedor dubbing-generator. La imagen incluye <code>es_ES-sharvard-medium</code> por defecto.
-              </p>
-            </div>
-          )}
-
-          {engine === 's2pro' && (
-            <>
+          <>
               <div>
                 <div className="flex items-end justify-between gap-2">
                   <Label htmlFor="s2_voice_profile">Perfil de voz (archivo en /voices)</Label>
@@ -906,31 +828,9 @@ function TtsSection({ settings }) {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Servidor s2.cpp embebido en el contenedor. Modelo q6_k bind-mounted en <code>/models/s2pro</code>. Licencia non-commercial.
+                Servidor s2.cpp embebido en el contenedor. Modelo bind-mounted en <code>/models/s2pro</code>. Licencia non-commercial.
               </p>
             </>
-          )}
-
-          {engine === 'kokoro' && (
-            <div>
-              <Label htmlFor="kokoro_voice">Voz Kokoro</Label>
-              <Select
-                value={kokoroVoice}
-                onValueChange={(v) => form.setValue('kokoro_voice', v, { shouldDirty: true })}
-              >
-                <SelectTrigger id="kokoro_voice" className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="em_alex">em_alex (masculino ES)</SelectItem>
-                  <SelectItem value="em_santa">em_santa (masculino ES alternativo)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Kokoro-82M usa GPU para inferencia rápida. Modelo descargado en build.
-              </p>
-            </div>
-          )}
         </CardContent>
         <Separator />
         <div className="flex justify-end gap-2 p-4">
