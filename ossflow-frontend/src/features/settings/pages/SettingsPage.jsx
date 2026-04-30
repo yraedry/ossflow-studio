@@ -106,6 +106,7 @@ const ttsSchema = z.object({
   s2_top_p: z.coerce.number().min(0.1).max(1.0).optional(),
   s2_top_k: z.coerce.number().int().min(1).max(200).optional(),
   s2_max_tokens: z.coerce.number().int().min(128).max(2048).optional(),
+  s2_quantization: z.enum(['q4_k_m', 'q6_k']).optional(),
 })
 
 const oracleSchema = z.object({
@@ -599,10 +600,12 @@ function TtsSection({ settings }) {
       s2_top_p: settings?.s2_top_p ?? 0.8,
       s2_top_k: settings?.s2_top_k ?? 30,
       s2_max_tokens: settings?.s2_max_tokens ?? 1024,
+      s2_quantization: settings?.s2_quantization || 'q6_k',
     },
   })
 
   const currentS2Voice = form.watch('s2_voice_profile')
+  const currentS2Quantization = form.watch('s2_quantization')
 
   // Load available voice WAVs from dubbing-generator. Each entry carries
   // the transcript sidecar so changing the dropdown can pre-fill the
@@ -684,6 +687,7 @@ function TtsSection({ settings }) {
         s2_top_p: values.s2_top_p,
         s2_top_k: values.s2_top_k,
         s2_max_tokens: values.s2_max_tokens,
+        s2_quantization: values.s2_quantization,
       }
       await updateMut.mutateAsync(payload)
       toast.success('TTS guardado')
@@ -787,6 +791,25 @@ function TtsSection({ settings }) {
                 <p className="text-xs text-muted-foreground mt-1">
                   Debe coincidir EXACTAMENTE con lo que se dice en el WAV. La discrepancia colapsa la calidad de clonación.
                   Al cambiar de voz se autocompleta con su transcripción guardada (si tiene sidecar).
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="s2_quantization">Cuantización S2-Pro</Label>
+                <Select
+                  value={currentS2Quantization}
+                  onValueChange={(v) => form.setValue('s2_quantization', v, { shouldDirty: true })}
+                >
+                  <SelectTrigger id="s2_quantization" className="mt-1.5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="q4_k_m">q4_K_M (~3 GB VRAM, calidad menor)</SelectItem>
+                    <SelectItem value="q6_k">q6_K (~5 GB VRAM, calidad recomendada)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Cambia entre q4_K_M (más rápido, menos VRAM) y q6_K (mejor calidad).
+                  El modelo se carga desde <code>/models/s2pro/s2-pro-{currentS2Quantization}.gguf</code>.
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
