@@ -1,5 +1,5 @@
-// Oracle (BJJFanatics) domain.
-// Endpoints (verified against processor-api/api/oracle.py — prefix /api/oracle):
+// Scrapper (BJJFanatics) domain.
+// Endpoints (verified against ossflow_api/modules/scrapper — prefix /api/scrapper):
 //   GET    /providers
 //   GET    /{instructional_path}                       (current .bjj-meta oracle block)
 //   PUT    /{instructional_path}                       (save)
@@ -14,16 +14,16 @@ const enc = encodeURIComponent
 
 export function useProviders() {
   return useQuery({
-    queryKey: qk.oracle.providers,
-    queryFn: () => http.get('/oracle/providers'),
+    queryKey: qk.scrapper.providers,
+    queryFn: () => http.get('/scrapper/providers'),
     staleTime: 10 * 60_000,
   })
 }
 
-export function useOracleData(path) {
+export function useScrapperData(path) {
   return useQuery({
-    queryKey: qk.oracle.detail(path),
-    queryFn: () => http.get(`/oracle/${enc(path)}`),
+    queryKey: qk.scrapper.detail(path),
+    queryFn: () => http.get(`/scrapper/${enc(path)}`),
     enabled: !!path,
     staleTime: 60_000,
   })
@@ -39,46 +39,46 @@ export function useResolveUrl() {
       if (providerId) body.provider_id = providerId
       if (title) body.title = title
       if (author) body.author = author
-      return http.post(`/oracle/${enc(path)}/resolve`, body)
+      return http.post(`/scrapper/${enc(path)}/resolve`, body)
     },
   })
 }
 
 // Poster may have been auto-downloaded by the backend (scrape/PUT), which
 // updates the scan cache — invalidate library queries so has_poster re-reads.
-function invalidateOracleAndLibrary(qc, path) {
-  qc.invalidateQueries({ queryKey: qk.oracle.detail(path) })
+function invalidateScrapperAndLibrary(qc, path) {
+  qc.invalidateQueries({ queryKey: qk.scrapper.detail(path) })
   qc.invalidateQueries({ queryKey: qk.library.list() })
   qc.invalidateQueries({ queryKey: qk.library.detail(path) })
 }
 
-export function useOracleScrape() {
+export function useScrapperScrape() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ path, url }) => http.post(`/oracle/${enc(path)}/scrape`, { url }),
-    onSuccess: (_d, { path }) => invalidateOracleAndLibrary(qc, path),
+    mutationFn: ({ path, url }) => http.post(`/scrapper/${enc(path)}/scrape`, { url }),
+    onSuccess: (_d, { path }) => invalidateScrapperAndLibrary(qc, path),
   })
 }
 
-export function useUpdateOracle() {
+export function useUpdateScrapper() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ path, oracle }) => http.put(`/oracle/${enc(path)}`, oracle),
-    onSuccess: (_d, { path }) => invalidateOracleAndLibrary(qc, path),
+    mutationFn: ({ path, oracle }) => http.put(`/scrapper/${enc(path)}`, oracle),
+    onSuccess: (_d, { path }) => invalidateScrapperAndLibrary(qc, path),
   })
 }
 
-export function useDeleteOracle() {
+export function useDeleteScrapper() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ path }) => http.del(`/oracle/${enc(path)}`),
-    onSuccess: (_d, { path }) => qc.invalidateQueries({ queryKey: qk.oracle.detail(path) }),
+    mutationFn: ({ path }) => http.del(`/scrapper/${enc(path)}`),
+    onSuccess: (_d, { path }) => qc.invalidateQueries({ queryKey: qk.scrapper.detail(path) }),
   })
 }
 
 // Convenience alias so pages reading "search" semantics can import it from here.
-// Note: the real product search lives in resolve(); `useOracleSearch` is a thin
+// Note: the real product search lives in resolve(); `useScrapperSearch` is a thin
 // wrapper that pairs a query string with the active provider.
-export function useOracleSearch() {
+export function useScrapperSearch() {
   return useResolveUrl()
 }

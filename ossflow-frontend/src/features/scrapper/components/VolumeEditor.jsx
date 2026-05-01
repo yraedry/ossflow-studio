@@ -38,8 +38,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { useUpdateOracle, useDeleteOracle } from '@/features/oracle/api/useOracle'
-import { parseTime, formatTime, validateOracle, deepClone, oracleEqual } from '@/features/oracle/lib/time'
+import { useUpdateScrapper, useDeleteScrapper } from '@/features/scrapper/api/useScrapper'
+import { parseTime, formatTime, validateOracle, deepClone, oracleEqual } from '@/features/scrapper/lib/time'
 
 function TimeCell({ value, onChange, ariaLabel, error }) {
   const [text, setText] = useState(formatTime(value))
@@ -229,8 +229,8 @@ export default function VolumeEditor({ path, oracle, onSaved, onDeleted, onDirty
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
-  const update = useUpdateOracle()
-  const remove = useDeleteOracle()
+  const update = useUpdateScrapper()
+  const remove = useDeleteScrapper()
 
   const updateVolume = (vi, vol) => {
     setDraft({ ...draft, volumes: draft.volumes.map((v, i) => (i === vi ? vol : v)) })

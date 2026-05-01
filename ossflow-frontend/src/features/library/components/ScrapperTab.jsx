@@ -1,5 +1,6 @@
-// Oracle tab — thin wrapper over oracle feature components.
+// Oracle tab — thin wrapper over scrapper feature components.
 // Shows URL input when no oracle yet, or VolumeEditor + PosterPreview when present.
+// (UX preserva la palabra "Oracle" como nombre del producto/feature.)
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Sparkles, ExternalLink, RefreshCw, Settings2 } from 'lucide-react'
@@ -12,14 +13,14 @@ import {
 } from '@/components/ui/Card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useOracleData } from '@/features/oracle/api/useOracle'
-import OracleUrlInput from '@/features/oracle/components/OracleUrlInput'
-import OracleAutoResolve from '@/features/oracle/components/OracleAutoResolve'
-import VolumeEditor from '@/features/oracle/components/VolumeEditor'
+import { useScrapperData } from '@/features/scrapper/api/useScrapper'
+import ScrapperUrlInput from '@/features/scrapper/components/ScrapperUrlInput'
+import ScrapperAutoResolve from '@/features/scrapper/components/ScrapperAutoResolve'
+import VolumeEditor from '@/features/scrapper/components/VolumeEditor'
 
-export default function OracleTab({ instructional }) {
+export default function ScrapperTab({ instructional }) {
   const path = instructional?.path || instructional?.name
-  const { data: oracle, isLoading, isError, error, refetch } = useOracleData(path)
+  const { data: oracle, isLoading, isError, error, refetch } = useScrapperData(path)
 
   const hasOracle = !!oracle && Array.isArray(oracle.volumes)
   const noOracleYet = isError && error?.status === 404
@@ -52,14 +53,14 @@ export default function OracleTab({ instructional }) {
           </CardHeader>
           <CardContent>
             <div className="mb-4">
-              <OracleAutoResolve path={path} onResolved={() => refetch()} />
+              <ScrapperAutoResolve path={path} onResolved={() => refetch()} />
             </div>
             <div className="my-3 flex items-center gap-2 text-[11px] text-zinc-600">
               <div className="h-px flex-1 bg-zinc-800" />
               <span>o pega la URL manualmente</span>
               <div className="h-px flex-1 bg-zinc-800" />
             </div>
-            <OracleUrlInput path={path} autoFocus onResolved={() => refetch()} />
+            <ScrapperUrlInput path={path} autoFocus onResolved={() => refetch()} />
           </CardContent>
         </Card>
       </motion.div>
@@ -104,7 +105,7 @@ export default function OracleTab({ instructional }) {
           variant="outline"
           size="sm"
         >
-          <Link to={`/library/${encodeURIComponent(instructional?.name || '')}/oracle`}>
+          <Link to={`/library/${encodeURIComponent(instructional?.name || '')}/scrapper`}>
             <Settings2 className="mr-1 h-3 w-3" /> Editor completo
           </Link>
         </Button>

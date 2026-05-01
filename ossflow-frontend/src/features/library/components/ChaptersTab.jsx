@@ -37,7 +37,7 @@ import { toast } from 'sonner'
 import { useRenameChapter, useRenameByOracle } from '../api/useLibrary'
 import { useStartPipeline } from '@/features/pipeline/api/usePipeline'
 import { useStartPromote, useStartPromoteSeason } from '../api/usePromote'
-import { useOracleData } from '@/features/oracle/api/useOracle'
+import { useScrapperData } from '@/features/scrapper/api/useScrapper'
 import SubtitleValidationDialog from './SubtitleValidationDialog'
 import SeasonValidationDialog from './SeasonValidationDialog'
 import DubQaBadge from './DubQaBadge'
@@ -835,7 +835,7 @@ function SeasonProcessButton({ seasonPath, list, hasOracle, oracleData }) {
 export default function ChaptersTab({ instructional }) {
   const videos = instructional?.videos || []
   const name = instructional?.name
-  const { data: oracleData } = useOracleData(name)
+  const { data: oracleData } = useScrapperData(name)
   const hasOracle = !!oracleData && Array.isArray(oracleData.volumes)
 
   const seasons = useMemo(() => {

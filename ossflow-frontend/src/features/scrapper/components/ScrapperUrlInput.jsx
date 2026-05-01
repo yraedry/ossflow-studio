@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/Badge'
-import { useProviders, useOracleScrape } from '@/features/oracle/api/useOracle'
+import { useProviders, useScrapperScrape } from '@/features/scrapper/api/useScrapper'
 
 function detectProvider(url, providers) {
   if (!url) return null
@@ -29,7 +29,7 @@ const baseSchema = z.object({
   url: z.string().trim().min(1, 'Pega una URL').url('URL inválida'),
 })
 
-export default function OracleUrlInput({ path, onResolved, autoFocus = false }) {
+export default function ScrapperUrlInput({ path, onResolved, autoFocus = false }) {
   const { data: providersResp } = useProviders()
   const providers = useMemo(() => {
     if (Array.isArray(providersResp)) return providersResp
@@ -53,7 +53,7 @@ export default function OracleUrlInput({ path, onResolved, autoFocus = false }) 
   const url = watch('url')
   const matchedProvider = useMemo(() => detectProvider(url, providers), [url, providers])
 
-  const scrape = useOracleScrape()
+  const scrape = useScrapperScrape()
 
   const onSubmit = handleSubmit(async ({ url }) => {
     try {

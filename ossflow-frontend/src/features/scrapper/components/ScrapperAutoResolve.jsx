@@ -1,17 +1,17 @@
-// Auto-resolve oracle by folder name. Calls /resolve to get candidates,
+// Auto-resolve scrapper by folder name. Calls /resolve to get candidates,
 // then either auto-scrapes the top match (score ≥ 0.9) or shows a picker.
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Wand2, Loader2, ExternalLink, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/Badge'
-import { useResolveUrl, useOracleScrape } from '@/features/oracle/api/useOracle'
+import { useResolveUrl, useScrapperScrape } from '@/features/scrapper/api/useScrapper'
 
 const AUTO_SCRAPE_THRESHOLD = 0.9
 
-export default function OracleAutoResolve({ path, onResolved }) {
+export default function ScrapperAutoResolve({ path, onResolved }) {
   const resolve = useResolveUrl()
-  const scrape = useOracleScrape()
+  const scrape = useScrapperScrape()
   const [candidates, setCandidates] = useState(null)
   const [scrapingUrl, setScrapingUrl] = useState(null)
 

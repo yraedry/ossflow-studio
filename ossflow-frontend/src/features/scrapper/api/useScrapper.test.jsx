@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useProviders } from './useOracle'
+import { useProviders } from './useScrapper'
 
 function wrap() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })

@@ -362,7 +362,7 @@ export default function InstructionalHero({
             </div>
             <Button
               variant="outline"
-              onClick={() => nav(`/library/${encodeURIComponent(name)}/oracle`)}
+              onClick={() => nav(`/library/${encodeURIComponent(name)}/scrapper`)}
             >
               <Sparkles className="mr-2 h-4 w-4 text-amber-400" /> Oracle
             </Button>

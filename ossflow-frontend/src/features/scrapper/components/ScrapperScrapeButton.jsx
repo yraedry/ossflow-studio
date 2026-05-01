@@ -1,10 +1,10 @@
 import { Loader2, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { useOracleScrape } from '@/features/oracle/api/useOracle'
+import { useScrapperScrape } from '@/features/scrapper/api/useScrapper'
 
-export default function OracleScrapeButton({ path, url, disabled, onScraped, label = 'Scrapear contenido' }) {
-  const scrape = useOracleScrape()
+export default function ScrapperScrapeButton({ path, url, disabled, onScraped, label = 'Scrapear contenido' }) {
+  const scrape = useScrapperScrape()
   const isDisabled = disabled || !url || scrape.isPending
 
   async function handleClick() {

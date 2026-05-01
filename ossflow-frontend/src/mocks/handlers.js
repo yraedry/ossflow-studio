@@ -95,7 +95,7 @@ export const handlers = [
   http.get(`${API}/logs/`, () => HttpResponse.json({ entries: [] })),
   http.get(`${API}/logs`, () => HttpResponse.json({ entries: [] })),
   http.get(`${API}/voices`, () => HttpResponse.json({ voices: [] })),
-  http.get(`${API}/oracle/providers`, () =>
+  http.get(`${API}/scrapper/providers`, () =>
     HttpResponse.json({
       providers: [
         { id: 'bjjfanatics', display_name: 'BJJ Fanatics', domains: ['bjjfanatics.com'] },

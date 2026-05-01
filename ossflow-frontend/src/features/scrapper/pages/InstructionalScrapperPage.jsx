@@ -1,4 +1,4 @@
-// WIRE_ROUTE_INSTRUCTIONAL_ORACLE: /library/:name/oracle → src/features/oracle/pages/InstructionalOraclePage.jsx
+// Route: /library/:name/scrapper
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate, useBlocker } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -18,19 +18,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useOracleData } from '@/features/oracle/api/useOracle'
+import { useScrapperData } from '@/features/scrapper/api/useScrapper'
 import { useStartPipeline } from '@/features/pipeline/api/usePipeline'
 import { useInstructional } from '@/features/library/api/useLibrary'
-import OracleUrlInput from '@/features/oracle/components/OracleUrlInput'
-import OracleAutoResolve from '@/features/oracle/components/OracleAutoResolve'
-import VolumeEditor from '@/features/oracle/components/VolumeEditor'
-import PosterPreview from '@/features/oracle/components/PosterPreview'
+import ScrapperUrlInput from '@/features/scrapper/components/ScrapperUrlInput'
+import ScrapperAutoResolve from '@/features/scrapper/components/ScrapperAutoResolve'
+import VolumeEditor from '@/features/scrapper/components/VolumeEditor'
+import PosterPreview from '@/features/scrapper/components/PosterPreview'
 
-export default function InstructionalOraclePage() {
+export default function InstructionalScrapperPage() {
   const params = useParams()
   const path = params.name || params.path || ''
   const navigate = useNavigate()
-  const { data: oracle, isLoading, isError, error, refetch } = useOracleData(path)
+  const { data: oracle, isLoading, isError, error, refetch } = useScrapperData(path)
   const { data: instructional } = useInstructional(path)
 
   const [isDirty, setDirty] = useState(false)
@@ -151,14 +151,14 @@ export default function InstructionalOraclePage() {
             </CardHeader>
             <CardContent>
               <div className="mb-4">
-                <OracleAutoResolve path={path} onResolved={() => refetch()} />
+                <ScrapperAutoResolve path={path} onResolved={() => refetch()} />
               </div>
               <div className="my-3 flex items-center gap-2 text-[11px] text-zinc-600">
                 <div className="h-px flex-1 bg-zinc-800" />
                 <span>o pega la URL manualmente</span>
                 <div className="h-px flex-1 bg-zinc-800" />
               </div>
-              <OracleUrlInput
+              <ScrapperUrlInput
                 path={path}
                 autoFocus
                 onResolved={() => refetch()}
@@ -203,7 +203,7 @@ export default function InstructionalOraclePage() {
                 Re-scrapear
               </summary>
               <div className="mt-2">
-                <OracleUrlInput path={path} onResolved={() => refetch()} />
+                <ScrapperUrlInput path={path} onResolved={() => refetch()} />
               </div>
             </details>
           </aside>

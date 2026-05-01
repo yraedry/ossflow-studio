@@ -26,11 +26,11 @@ export const qk = {
   mount: {
     all: ['mount'],
   },
-  oracle: {
-    all: ['oracle'],
-    providers: ['oracle', 'providers'],
-    detail: (path) => ['oracle', 'detail', path],
-    search: (query) => ['oracle', 'search', query],
+  scrapper: {
+    all: ['scrapper'],
+    providers: ['scrapper', 'providers'],
+    detail: (path) => ['scrapper', 'detail', path],
+    search: (query) => ['scrapper', 'search', query],
   },
   logs: {
     all: ['logs'],

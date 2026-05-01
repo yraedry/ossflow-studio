@@ -53,7 +53,7 @@ import { useTheme } from '@/components/theme-provider'
 import { useBackendsHealth } from '@/components/layout/useBackendsHealth'
 import { useSettings, useUpdateSettings } from '@/features/settings/api/useSettings'
 import { useMount, useMountStatus } from '@/features/settings/api/useMount'
-import { useProviders } from '@/features/oracle/api/useOracle'
+import { useProviders } from '@/features/scrapper/api/useScrapper'
 import { http } from '@/lib/httpClient'
 import { formatBytes, formatDuration } from '@/lib/format'
 import {

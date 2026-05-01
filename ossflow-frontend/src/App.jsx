@@ -3,7 +3,7 @@ import { AppShell } from './components/layout/AppShell'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
 import LibraryPage from './features/library/pages/LibraryPage'
 import InstructionalDetailPage from './features/library/pages/InstructionalDetailPage'
-import InstructionalOraclePage from './features/oracle/pages/InstructionalOraclePage'
+import InstructionalScrapperPage from './features/scrapper/pages/InstructionalScrapperPage'
 import PipelinesListPage from './features/pipeline/pages/PipelinesListPage'
 import PipelineDetailPage from './features/pipeline/pages/PipelineDetailPage'
 import SearchPage from './features/search/pages/SearchPage'
@@ -27,7 +27,7 @@ const router = createBrowserRouter([
       { path: '/', element: <DashboardPage /> },
       { path: '/library', element: <LibraryPage /> },
       { path: '/library/:name', element: <InstructionalDetailPage /> },
-      { path: '/library/:name/oracle', element: <InstructionalOraclePage /> },
+      { path: '/library/:name/scrapper', element: <InstructionalScrapperPage /> },
       { path: '/pipelines', element: <PipelinesListPage /> },
       { path: '/pipelines/:id', element: <PipelineDetailPage /> },
       { path: '/search', element: <SearchPage /> },

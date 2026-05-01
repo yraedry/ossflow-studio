@@ -14,7 +14,7 @@ import { useInstructional } from '@/features/library/api/useLibrary'
 import InstructionalHero from '@/features/library/components/InstructionalHero'
 import ChaptersTab from '@/features/library/components/ChaptersTab'
 import MetadataTab from '@/features/library/components/MetadataTab'
-import OracleTab from '@/features/library/components/OracleTab'
+import ScrapperTab from '@/features/library/components/ScrapperTab'
 import QaTab from '@/features/library/components/QaTab'
 
 const TABS = [
@@ -213,7 +213,7 @@ export default function InstructionalDetailPage() {
           <MetadataTab instructional={data} />
         </TabsContent>
         <TabsContent value="oracle" className="mt-0">
-          <OracleTab instructional={data} />
+          <ScrapperTab instructional={data} />
         </TabsContent>
       </Tabs>
     </div>
