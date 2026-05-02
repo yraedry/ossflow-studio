@@ -1,0 +1,37 @@
+# ============================================================
+# OSSFlow Studio — Frontend (React + Nginx)
+# ============================================================
+# Levanta el frontend conectado a la network compartida ossflow_net
+# (creada por ossflow-platform). Proxy /api y /events apunta a
+# ossflow-api:8000 vía nginx.
+#
+# Uso:
+#   1) Asegúrate de haber levantado ossflow-platform primero
+#      (es quien crea ossflow_net):
+#        cd ../ossflow-platform && docker compose up -d
+#   2) Levanta el frontend:
+#        docker compose up -d
+#   3) Abre http://<host>:3000
+# ============================================================
+
+services:
+  ossflow-frontend:
+    build:
+      context: ./ossflow-frontend
+      dockerfile: Dockerfile
+    container_name: ossflow-frontend
+    ports:
+      - "3000:80"
+    networks:
+      - ossflow_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  ossflow_net:
+    external: true

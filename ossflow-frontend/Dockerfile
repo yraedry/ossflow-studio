@@ -1,8 +1,9 @@
 # ============================================================
-# BJJ Procesador — React Frontend
+# OSSFlow Studio — React Frontend
 # ============================================================
-# Build:  docker build -t bjj-frontend ./processor-frontend
-# Run:    docker run -p 3000:80 bjj-frontend
+# Build:  docker build -t ossflow-frontend ./ossflow-frontend
+# Run:    docker run -p 3000:80 ossflow-frontend
+# (Recomendado: docker compose up -d desde la raíz del repo.)
 # ============================================================
 
 # --- Build stage ---
