@@ -1,7 +1,7 @@
 // WIRE_ROUTE_INSTRUCTIONAL_DETAIL: /library/:name → src/features/library/pages/InstructionalDetailPage.jsx
 //
 // Detalle de instructional: hero (póster + CTAs) + tabs (Capítulos / Pipeline
-// / Metadatos / Logs / Oracle). La pestaña activa se persiste en el search
+// / Metadatos / Logs / Scrapper). La pestaña activa se persiste en el search
 // param `?tab=…` para compartir URL.
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -21,7 +21,7 @@ const TABS = [
   { id: 'chapters', label: 'Capítulos' },
   { id: 'qa', label: 'QA doblaje' },
   { id: 'metadata', label: 'Metadatos' },
-  { id: 'oracle', label: 'Oracle' },
+  { id: 'scrapper', label: 'Scrapper' },
 ]
 
 function HeroSkeleton() {
@@ -212,7 +212,7 @@ export default function InstructionalDetailPage() {
         <TabsContent value="metadata" className="mt-0">
           <MetadataTab instructional={data} />
         </TabsContent>
-        <TabsContent value="oracle" className="mt-0">
+        <TabsContent value="scrapper" className="mt-0">
           <ScrapperTab instructional={data} />
         </TabsContent>
       </Tabs>

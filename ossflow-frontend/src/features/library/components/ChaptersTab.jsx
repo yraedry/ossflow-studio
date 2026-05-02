@@ -34,7 +34,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { useRenameChapter, useRenameByOracle } from '../api/useLibrary'
+import { useRenameChapter, useRenameByScrapper } from '../api/useLibrary'
 import { useStartPipeline } from '@/features/pipeline/api/usePipeline'
 import { useStartPromote, useStartPromoteSeason } from '../api/usePromote'
 import { useScrapperData } from '@/features/scrapper/api/useScrapper'
@@ -84,7 +84,7 @@ function StatusBadge({ ok, Icon, label }) {
   )
 }
 
-function ChapterRow({ video, instructionalName, onNext, hasOracle }) {
+function ChapterRow({ video, instructionalName, onNext, hasScrapper }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [err, setErr] = useState(null)
@@ -204,7 +204,7 @@ function ChapterRow({ video, instructionalName, onNext, hasOracle }) {
     const launchingId = toast.loading('Lanzando pipeline…')
     try {
       const opts = forceRegen ? { force: true } : {}
-      if (hasOracle && sorted.includes('chapters')) opts.mode = 'oracle'
+      if (hasScrapper && sorted.includes('chapters')) opts.mode = 'oracle'
       const resp = await startSplit.mutateAsync({ path: video.path, steps: sorted, options: opts })
       const id = resp?.pipeline_id || resp?.id
       toast.success('Pipeline lanzado', { id: launchingId })
@@ -216,7 +216,7 @@ function ChapterRow({ video, instructionalName, onNext, hasOracle }) {
 
   const handleSplit = async () => {
     try {
-      const opts = hasOracle ? { mode: 'oracle' } : {}
+      const opts = hasScrapper ? { mode: 'oracle' } : {}
       const resp = await startSplit.mutateAsync({
         path: video.path,
         steps: ['chapters'],
@@ -511,7 +511,7 @@ function deriveSeasonPath(list) {
   return idx > 0 ? first.slice(0, idx) : null
 }
 
-function SeasonPipelineButton({ seasonPath, steps, label, Icon, title, hasOracle, extraOptions }) {
+function SeasonPipelineButton({ seasonPath, steps, label, Icon, title, hasScrapper, extraOptions }) {
   const nav = useNavigate()
   const start = useStartPipeline()
   const onClick = async (e) => {
@@ -523,7 +523,7 @@ function SeasonPipelineButton({ seasonPath, steps, label, Icon, title, hasOracle
     const tid = toast.loading(`Lanzando ${label}…`)
     try {
       const opts = { ...(extraOptions || {}) }
-      if (hasOracle && steps.includes('chapters')) opts.mode = 'oracle'
+      if (hasScrapper && steps.includes('chapters')) opts.mode = 'oracle'
       const resp = await start.mutateAsync({ path: seasonPath, steps, options: opts })
       const id = resp?.pipeline_id || resp?.id
       toast.success('Pipeline lanzado', { id: tid })
@@ -575,8 +575,8 @@ function SeasonValidateButton({ season, list }) {
   )
 }
 
-function SeasonRenameOracleButton({ seasonPath, oracle, instructionalName }) {
-  const rename = useRenameByOracle()
+function SeasonRenameScrapperButton({ seasonPath, scrapper, instructionalName }) {
+  const rename = useRenameByScrapper()
   const onClick = async (e) => {
     e.stopPropagation()
     if (!seasonPath) {
@@ -584,7 +584,7 @@ function SeasonRenameOracleButton({ seasonPath, oracle, instructionalName }) {
       return
     }
     try {
-      const result = await rename.mutateAsync({ seasonPath, oracle, instructionalName })
+      const result = await rename.mutateAsync({ seasonPath, scrapper, instructionalName })
       const n = result?.renamed?.length ?? 0
       const sk = result?.skipped?.length ?? 0
       toast.success(`Renombrados ${n} capítulo(s)${sk ? ` · ${sk} sin coincidencia` : ''}`)
@@ -598,14 +598,14 @@ function SeasonRenameOracleButton({ seasonPath, oracle, instructionalName }) {
       variant="outline"
       disabled={rename.isPending || !seasonPath}
       onClick={onClick}
-      title="Renombrar capítulos usando los títulos del oráculo"
+      title="Renombrar capítulos usando los títulos del scrapper"
     >
       {rename.isPending ? (
         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
       ) : (
         <Pencil className="mr-1 h-3 w-3" />
       )}
-      Renombrar por Oracle
+      Renombrar por Scrapper
     </Button>
   )
 }
@@ -678,7 +678,7 @@ function SeasonPromoteButton({ seasonPath, list }) {
 }
 
 
-function SeasonProcessButton({ seasonPath, list, hasOracle, oracleData }) {
+function SeasonProcessButton({ seasonPath, list, hasScrapper, scrapperData }) {
   const nav = useNavigate()
   const start = useStartPipeline()
   const [open, setOpen] = useState(false)
@@ -722,7 +722,7 @@ function SeasonProcessButton({ seasonPath, list, hasOracle, oracleData }) {
     const tid = toast.loading('Lanzando Season…')
     try {
       const opts = {}
-      if (hasOracle && steps.includes('chapters')) opts.mode = 'oracle'
+      if (hasScrapper && steps.includes('chapters')) opts.mode = 'oracle'
       if (forceRegen) opts.force = true
       const resp = await start.mutateAsync({ path: seasonPath, steps, options: opts })
       const id = resp?.pipeline_id || resp?.id
@@ -835,8 +835,8 @@ function SeasonProcessButton({ seasonPath, list, hasOracle, oracleData }) {
 export default function ChaptersTab({ instructional }) {
   const videos = instructional?.videos || []
   const name = instructional?.name
-  const { data: oracleData } = useScrapperData(name)
-  const hasOracle = !!oracleData && Array.isArray(oracleData.volumes)
+  const { data: scrapperData } = useScrapperData(name)
+  const hasScrapper = !!scrapperData && Array.isArray(scrapperData.volumes)
 
   const seasons = useMemo(() => {
     const map = new Map()
@@ -891,17 +891,17 @@ export default function ChaptersTab({ instructional }) {
                   <SeasonPipelineButton
                     seasonPath={seasonPath}
                     steps={['chapters']}
-                    label={hasOracle ? 'Trocear (oráculo)' : 'Trocear'}
+                    label={hasScrapper ? 'Trocear (scrapper)' : 'Trocear'}
                     Icon={Scissors}
                     title="Detectar y fragmentar capítulos en estos videos"
-                    hasOracle={hasOracle}
+                    hasScrapper={hasScrapper}
                   />
                 ) : (
                   <>
-                    {hasOracle && (
-                      <SeasonRenameOracleButton
+                    {hasScrapper && (
+                      <SeasonRenameScrapperButton
                         seasonPath={seasonPath}
-                        oracle={oracleData}
+                        scrapper={scrapperData}
                         instructionalName={name}
                       />
                     )}
@@ -923,8 +923,8 @@ export default function ChaptersTab({ instructional }) {
                     <SeasonProcessButton
                       seasonPath={seasonPath}
                       list={list}
-                      hasOracle={hasOracle}
-                      oracleData={oracleData}
+                      hasScrapper={hasScrapper}
+                      scrapperData={scrapperData}
                     />
                     <SeasonPromoteButton seasonPath={seasonPath} list={list} />
                   </>
@@ -950,7 +950,7 @@ export default function ChaptersTab({ instructional }) {
                       key={v.path}
                       video={v}
                       instructionalName={name}
-                      hasOracle={hasOracle}
+                      hasScrapper={hasScrapper}
                     />
                   ))}
                 </tbody>

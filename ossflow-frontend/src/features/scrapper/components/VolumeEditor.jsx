@@ -39,7 +39,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useUpdateScrapper, useDeleteScrapper } from '@/features/scrapper/api/useScrapper'
-import { parseTime, formatTime, validateOracle, deepClone, oracleEqual } from '@/features/scrapper/lib/time'
+import { parseTime, formatTime, validateScrapper, deepClone, scrapperEqual } from '@/features/scrapper/lib/time'
 
 function TimeCell({ value, onChange, ariaLabel, error }) {
   const [text, setText] = useState(formatTime(value))
@@ -220,12 +220,12 @@ function VolumePanel({ vol, vi, errors, onChange, onDelete }) {
   )
 }
 
-export default function VolumeEditor({ path, oracle, onSaved, onDeleted, onDirtyChange }) {
-  const [draft, setDraft] = useState(() => deepClone(oracle))
-  useEffect(() => { setDraft(deepClone(oracle)) }, [oracle])
+export default function VolumeEditor({ path, scrapper, onSaved, onDeleted, onDirtyChange }) {
+  const [draft, setDraft] = useState(() => deepClone(scrapper))
+  useEffect(() => { setDraft(deepClone(scrapper)) }, [scrapper])
 
-  const errors = useMemo(() => validateOracle(draft), [draft])
-  const isDirty = useMemo(() => !oracleEqual(draft, oracle), [draft, oracle])
+  const errors = useMemo(() => validateScrapper(draft), [draft])
+  const isDirty = useMemo(() => !scrapperEqual(draft, scrapper), [draft, scrapper])
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
@@ -245,7 +245,7 @@ export default function VolumeEditor({ path, oracle, onSaved, onDeleted, onDirty
       volumes: [...draft.volumes, { number: nextNum, chapters: [{ title: 'Capítulo 1', start_s: 0, end_s: 60 }], total_duration_s: 60 }],
     })
   }
-  const reset = () => setDraft(deepClone(oracle))
+  const reset = () => setDraft(deepClone(scrapper))
 
   async function handleSave() {
     if (errors.length) {
@@ -254,7 +254,7 @@ export default function VolumeEditor({ path, oracle, onSaved, onDeleted, onDirty
     }
     try {
       await update.mutateAsync({ path, oracle: draft })
-      toast.success('Oracle guardado')
+      toast.success('Scrapper guardado')
       onSaved?.()
     } catch (e) {
       toast.error(`Error guardando: ${e.message || 'desconocido'}`)
@@ -264,7 +264,7 @@ export default function VolumeEditor({ path, oracle, onSaved, onDeleted, onDirty
   async function handleDelete() {
     try {
       await remove.mutateAsync({ path })
-      toast.success('Oracle eliminado')
+      toast.success('Scrapper eliminado')
       onDeleted?.()
     } catch (e) {
       toast.error(`Error eliminando: ${e.message || 'desconocido'}`)
@@ -286,12 +286,12 @@ export default function VolumeEditor({ path, oracle, onSaved, onDeleted, onDirty
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="text-red-400 hover:text-red-300 ml-auto">
-              <Trash2 size={14} className="mr-2" /> Eliminar oracle
+              <Trash2 size={14} className="mr-2" /> Eliminar scrapper
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>¿Eliminar oracle?</AlertDialogTitle>
+              <AlertDialogTitle>¿Eliminar scrapper?</AlertDialogTitle>
               <AlertDialogDescription>
                 Se borrarán los datos scrapeados de este instructional. La acción no se puede deshacer.
               </AlertDialogDescription>

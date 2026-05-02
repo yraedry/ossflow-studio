@@ -129,11 +129,11 @@ export function useRenameChapter() {
   })
 }
 
-export function useRenameByOracle() {
+export function useRenameByScrapper() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ seasonPath, oracle, instructionalName }) =>
-      http.post('/chapters/rename-by-oracle', { season_path: seasonPath, oracle, instructional_name: instructionalName }),
+    mutationFn: ({ seasonPath, scrapper, instructionalName }) =>
+      http.post('/chapters/rename-by-oracle', { season_path: seasonPath, oracle: scrapper, instructional_name: instructionalName }),
     onSettled: (_data, _err, vars) => {
       if (vars?.instructionalName) {
         qc.invalidateQueries({ queryKey: qk.library.detail(vars.instructionalName) })

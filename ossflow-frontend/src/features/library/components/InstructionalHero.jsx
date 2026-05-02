@@ -159,11 +159,11 @@ export default function InstructionalHero({
       await redownload.mutateAsync({ name })
       setPosterErrored(false)
       setCacheBust((n) => n + 1)
-      toast.success('Póster re-descargado desde Oracle')
+      toast.success('Póster re-descargado desde Scrapper')
     } catch (err) {
       const status = err?.status
       if (status === 404) {
-        toast.error('Este instructional no tiene oracle.poster_url. Ejecuta Oracle primero.')
+        toast.error('Este instructional no tiene oracle.poster_url. Ejecuta Scrapper primero.')
       } else {
         toast.error(`Error re-descargando póster: ${err?.message || 'desconocido'}`)
       }
@@ -261,14 +261,14 @@ export default function InstructionalHero({
             className="mt-2 w-full text-zinc-400 hover:text-zinc-100"
             onClick={handleRedownload}
             disabled={redownload.isPending}
-            title="Re-descargar póster desde la URL de Oracle"
+            title="Re-descargar póster desde la URL de Scrapper"
           >
             {redownload.isPending ? (
               <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
             ) : (
               <Download className="mr-2 h-3.5 w-3.5" />
             )}
-            {redownload.isPending ? 'Descargando…' : 'Re-descargar de Oracle'}
+            {redownload.isPending ? 'Descargando…' : 'Re-descargar de Scrapper'}
           </Button>
         </div>
 
@@ -364,7 +364,7 @@ export default function InstructionalHero({
               variant="outline"
               onClick={() => nav(`/library/${encodeURIComponent(name)}/scrapper`)}
             >
-              <Sparkles className="mr-2 h-4 w-4 text-amber-400" /> Oracle
+              <Sparkles className="mr-2 h-4 w-4 text-amber-400" /> Scrapper
             </Button>
             <Button variant="outline" onClick={onEditMetadata}>
               <Pencil className="mr-2 h-4 w-4" /> Editar metadatos

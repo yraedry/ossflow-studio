@@ -1,4 +1,4 @@
-// Time helpers for Oracle chapter editor (HH:MM:SS / MM:SS)
+// Time helpers for Scrapper chapter editor (HH:MM:SS / MM:SS)
 export function parseTime(str) {
   if (str == null) return null
   const s = String(str).trim()
@@ -23,10 +23,10 @@ export function formatTime(seconds) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
 }
 
-export function validateOracle(oracle) {
+export function validateScrapper(scrapper) {
   const errors = []
-  if (!oracle?.volumes?.length) return errors
-  oracle.volumes.forEach((vol, vi) => {
+  if (!scrapper?.volumes?.length) return errors
+  scrapper.volumes.forEach((vol, vi) => {
     vol.chapters.forEach((ch, ci) => {
       const start = ch.start_s
       const end = ch.end_s
@@ -42,6 +42,6 @@ export function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj))
 }
 
-export function oracleEqual(a, b) {
+export function scrapperEqual(a, b) {
   return JSON.stringify(a) === JSON.stringify(b)
 }

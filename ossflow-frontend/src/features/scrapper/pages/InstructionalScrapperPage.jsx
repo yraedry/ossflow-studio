@@ -30,7 +30,7 @@ export default function InstructionalScrapperPage() {
   const params = useParams()
   const path = params.name || params.path || ''
   const navigate = useNavigate()
-  const { data: oracle, isLoading, isError, error, refetch } = useScrapperData(path)
+  const { data: scrapperData, isLoading, isError, error, refetch } = useScrapperData(path)
   const { data: instructional } = useInstructional(path)
 
   const [isDirty, setDirty] = useState(false)
@@ -52,20 +52,20 @@ export default function InstructionalScrapperPage() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  const hasOracle = !!oracle && Array.isArray(oracle.volumes)
-  const noOracleYet = isError && error?.status === 404
+  const hasScrapper = !!scrapperData && Array.isArray(scrapperData.volumes)
+  const noScrapperYet = isError && error?.status === 404
 
   const startPipeline = useStartPipeline()
 
-  const posterUrl = oracle?.poster_url || null
+  const posterUrl = scrapperData?.poster_url || null
   // The /scrape response includes `poster_downloaded` once persisted; treat presence
   // of that key as "already on disk". Conservative default: if scraped but not yet
   // downloaded, the badge in PosterPreview informs the user.
-  const hasLocalPoster = !!oracle?.poster_downloaded
+  const hasLocalPoster = !!scrapperData?.poster_downloaded
 
-  const productUrl = oracle?.product_url
+  const productUrl = scrapperData?.product_url
 
-  const handleProcessOracle = async () => {
+  const handleProcessScrapper = async () => {
     const fullPath = instructional?.path || path
     try {
       const resp = await startPipeline.mutateAsync({
@@ -74,7 +74,7 @@ export default function InstructionalScrapperPage() {
         options: { mode: 'oracle' },
       })
       const id = resp?.pipeline_id || resp?.id
-      toast.success('Pipeline con oráculo lanzado')
+      toast.success('Pipeline con scrapper lanzado')
       if (id) navigate(`/pipelines/${id}`)
     } catch (e) {
       toast.error(`Error: ${e?.message || 'desconocido'}`)
@@ -93,7 +93,7 @@ export default function InstructionalScrapperPage() {
         <div className="mt-3 flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-zinc-100">
-              <Sparkles className="h-5 w-5 text-amber-400" /> Oráculo
+              <Sparkles className="h-5 w-5 text-amber-400" /> Scrapper
             </h1>
             <p className="mt-1 text-xs text-zinc-500 font-mono truncate" title={path}>{path}</p>
             {productUrl && (
@@ -108,19 +108,19 @@ export default function InstructionalScrapperPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {isError && !noOracleYet && (
+            {isError && !noScrapperYet && (
               <Button variant="outline" size="sm" onClick={() => refetch()}>
                 <RefreshCw size={14} className="mr-1.5" /> Reintentar
               </Button>
             )}
-            {hasOracle && (
-              <Button onClick={handleProcessOracle} disabled={startPipeline.isPending}>
+            {hasScrapper && (
+              <Button onClick={handleProcessScrapper} disabled={startPipeline.isPending}>
                 {startPipeline.isPending ? (
                   <Loader2 size={14} className="mr-2 animate-spin" />
                 ) : (
                   <Play size={14} className="mr-2" />
                 )}
-                Procesar con oráculo
+                Procesar con scrapper
               </Button>
             )}
           </div>
@@ -134,7 +134,7 @@ export default function InstructionalScrapperPage() {
         </div>
       )}
 
-      {!isLoading && noOracleYet && (
+      {!isLoading && noScrapperYet && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -143,7 +143,7 @@ export default function InstructionalScrapperPage() {
           <Card className="bg-zinc-950/60 border-zinc-800">
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2 text-lg">
-                <Sparkles className="h-5 w-5 text-amber-400" /> Aún no hay oráculo
+                <Sparkles className="h-5 w-5 text-amber-400" /> Aún no hay scrapper
               </CardTitle>
               <CardDescription>
                 Pega la URL del producto en BJJFanatics para scrapear los capítulos automáticamente.
@@ -172,22 +172,22 @@ export default function InstructionalScrapperPage() {
         </motion.div>
       )}
 
-      {!isLoading && isError && !noOracleYet && (
+      {!isLoading && isError && !noScrapperYet && (
         <Card className="border-red-900/50 bg-red-950/20">
           <CardContent className="pt-6">
             <p className="text-sm text-red-300">
-              Error cargando oracle: {error?.message || 'desconocido'}
+              Error cargando scrapper: {error?.message || 'desconocido'}
             </p>
           </CardContent>
         </Card>
       )}
 
-      {!isLoading && hasOracle && (
+      {!isLoading && hasScrapper && (
         <div className="grid gap-6 lg:grid-cols-[1fr_180px]">
           <section className="min-w-0">
             <VolumeEditor
               path={path}
-              oracle={oracle}
+              scrapper={scrapperData}
               onSaved={() => refetch()}
               onDeleted={() => {
                 setDirty(false)
@@ -218,7 +218,7 @@ export default function InstructionalScrapperPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cambios sin guardar</AlertDialogTitle>
             <AlertDialogDescription>
-              Tienes ediciones sin guardar en el oráculo. Si sales ahora se perderán.
+              Tienes ediciones sin guardar en el scrapper. Si sales ahora se perderán.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -19,7 +19,7 @@ export default function ScrapperAutoResolve({ path, onResolved }) {
     setScrapingUrl(url)
     try {
       const result = await scrape.mutateAsync({ path, url })
-      toast.success('Oráculo scrapeado correctamente')
+      toast.success('Scrapper completado correctamente')
       setCandidates(null)
       onResolved?.(result)
     } catch (e) {

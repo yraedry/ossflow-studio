@@ -1,6 +1,5 @@
-// Oracle tab — thin wrapper over scrapper feature components.
-// Shows URL input when no oracle yet, or VolumeEditor + PosterPreview when present.
-// (UX preserva la palabra "Oracle" como nombre del producto/feature.)
+// Scrapper tab — thin wrapper over scrapper feature components.
+// Shows URL input when no scrapper data yet, or VolumeEditor + PosterPreview when present.
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Sparkles, ExternalLink, RefreshCw, Settings2 } from 'lucide-react'
@@ -20,11 +19,11 @@ import VolumeEditor from '@/features/scrapper/components/VolumeEditor'
 
 export default function ScrapperTab({ instructional }) {
   const path = instructional?.path || instructional?.name
-  const { data: oracle, isLoading, isError, error, refetch } = useScrapperData(path)
+  const { data: scrapperData, isLoading, isError, error, refetch } = useScrapperData(path)
 
-  const hasOracle = !!oracle && Array.isArray(oracle.volumes)
-  const noOracleYet = isError && error?.status === 404
-  const productUrl = oracle?.product_url
+  const hasScrapper = !!scrapperData && Array.isArray(scrapperData.volumes)
+  const noScrapperYet = isError && error?.status === 404
+  const productUrl = scrapperData?.product_url
 
   if (isLoading) {
     return (
@@ -35,7 +34,7 @@ export default function ScrapperTab({ instructional }) {
     )
   }
 
-  if (noOracleYet) {
+  if (noScrapperYet) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 6 }}
@@ -45,7 +44,7 @@ export default function ScrapperTab({ instructional }) {
         <Card className="border-zinc-800 bg-zinc-950/60">
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2 text-lg">
-              <Sparkles className="h-5 w-5 text-amber-400" /> Aún no hay oráculo
+              <Sparkles className="h-5 w-5 text-amber-400" /> Aún no hay scrapper
             </CardTitle>
             <CardDescription>
               Pega la URL del producto en BJJFanatics para scrapear los capítulos.
@@ -70,7 +69,7 @@ export default function ScrapperTab({ instructional }) {
   if (isError) {
     return (
       <div className="rounded-lg border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-300">
-        Error cargando oracle: {error?.message || 'desconocido'}
+        Error cargando scrapper: {error?.message || 'desconocido'}
         <Button
           size="sm"
           variant="outline"
@@ -83,7 +82,7 @@ export default function ScrapperTab({ instructional }) {
     )
   }
 
-  if (!hasOracle) return null
+  if (!hasScrapper) return null
 
   return (
     <div className="space-y-3">
@@ -113,7 +112,7 @@ export default function ScrapperTab({ instructional }) {
 
       <VolumeEditor
         path={path}
-        oracle={oracle}
+        scrapper={scrapperData}
         onSaved={() => refetch()}
         onDeleted={() => refetch()}
       />

@@ -58,7 +58,7 @@ export default function ScrapperUrlInput({ path, onResolved, autoFocus = false }
   const onSubmit = handleSubmit(async ({ url }) => {
     try {
       const result = await scrape.mutateAsync({ path, url: url.trim() })
-      toast.success('Oracle scrapeado correctamente')
+      toast.success('Scrapper scrapeado correctamente')
       onResolved?.(result)
     } catch (e) {
       toast.error(`No se pudo resolver: ${e.message || 'error'}`)
@@ -78,7 +78,7 @@ export default function ScrapperUrlInput({ path, onResolved, autoFocus = false }
           <Input
             autoFocus={autoFocus}
             placeholder="https://bjjfanatics.com/products/..."
-            aria-label="oracle-url"
+            aria-label="scrapper-url"
             aria-invalid={!!errors.url}
             {...register('url')}
             className="font-mono text-sm"

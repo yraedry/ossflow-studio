@@ -14,7 +14,7 @@ const LABELS = {
   cleanup: 'Limpieza',
   duplicates: 'Duplicados',
   telegram: 'Telegram',
-  scrapper: 'Oracle',
+  scrapper: 'Scrapper',
   providers: 'Providers',
 }
 
