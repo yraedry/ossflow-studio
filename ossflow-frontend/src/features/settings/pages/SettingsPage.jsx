@@ -106,7 +106,15 @@ const ttsSchema = z.object({
   s2_top_p: z.coerce.number().min(0.1).max(1.0).optional(),
   s2_top_k: z.coerce.number().int().min(1).max(200).optional(),
   s2_max_tokens: z.coerce.number().int().min(128).max(2048).optional(),
-  s2_quantization: z.enum(['q4_k_m', 'q6_k']).optional(),
+  // La whitelist enum se eliminó: la lista de quants se descubre en
+  // caliente desde GET /api/dubbing/s2pro/models (escanea el bind-mount
+  // del dubbing). Solo validamos forma — identificador seguro para
+  // construir el path s2-pro-{quant}.gguf sin path traversal. Debe
+  // espejar la validación equivalente en ossflow-api/settings/service.py.
+  s2_quantization: z
+    .string()
+    .regex(/^[a-z0-9_]+$/, 'identificador inválido')
+    .optional(),
 })
 
 const scrapperSchema = z.object({
