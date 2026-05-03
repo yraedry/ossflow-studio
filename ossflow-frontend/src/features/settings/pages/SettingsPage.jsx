@@ -653,6 +653,32 @@ function TtsSection({ settings }) {
     }
   }
 
+  // GGUF S2-Pro disponibles en el bind-mount del dubbing. La lista se
+  // descubre en caliente: dropear un nuevo .gguf en la carpeta del host
+  // y recargar la página basta para verlo (no hay rebuild de imagen).
+  const [s2Models, setS2Models] = useState([])
+  const [s2ModelsLoading, setS2ModelsLoading] = useState(false)
+  const [s2TokenizerPresent, setS2TokenizerPresent] = useState(true)
+  const [s2ModelsDirExists, setS2ModelsDirExists] = useState(true)
+  const reloadS2Models = async () => {
+    setS2ModelsLoading(true)
+    try {
+      const r = await http.get('/dubbing/s2pro/models')
+      setS2Models(Array.isArray(r?.models) ? r.models : [])
+      setS2TokenizerPresent(Boolean(r?.tokenizer_present))
+      setS2ModelsDirExists(Boolean(r?.dir_exists))
+    } catch (e) {
+      // Backend may be down at first paint — silent fail; the dropdown
+      // falls back to the saved setting so the user can still submit.
+    } finally {
+      setS2ModelsLoading(false)
+    }
+  }
+  useEffect(() => {
+    reloadS2Models()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const saveTranscriptForCurrentVoice = async () => {
     const filename = form.getValues('s2_voice_profile')
     const transcript = form.getValues('s2_ref_text') || ''
@@ -794,7 +820,22 @@ function TtsSection({ settings }) {
                 </p>
               </div>
               <div>
-                <Label htmlFor="s2_quantization">Cuantización S2-Pro</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="s2_quantization">Cuantización S2-Pro</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={reloadS2Models}
+                    disabled={s2ModelsLoading}
+                    className="h-7 gap-1 text-xs"
+                  >
+                    {s2ModelsLoading
+                      ? <Loader2 size={12} className="animate-spin" />
+                      : <RefreshCw size={12} />}
+                    Recargar
+                  </Button>
+                </div>
                 <Select
                   value={currentS2Quantization}
                   onValueChange={(v) => form.setValue('s2_quantization', v, { shouldDirty: true })}
@@ -803,13 +844,38 @@ function TtsSection({ settings }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="q4_k_m">q4_K_M (~3 GB VRAM, calidad menor)</SelectItem>
-                    <SelectItem value="q6_k">q6_K (~5 GB VRAM, calidad recomendada)</SelectItem>
+                    {s2Models.map((m) => (
+                      <SelectItem key={m.quant} value={m.quant} className="font-mono">
+                        {m.quant} ({formatBytes(m.size_bytes)})
+                      </SelectItem>
+                    ))}
+                    {currentS2Quantization && !s2Models.some((m) => m.quant === currentS2Quantization) && (
+                      <SelectItem value={currentS2Quantization} className="font-mono">
+                        {currentS2Quantization} (no presente en /models/s2pro)
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
+                {!s2ModelsDirExists && (
+                  <p className="text-xs text-amber-500 mt-1">
+                    Directorio <code>/models/s2pro</code> no encontrado en el contenedor dubbing.
+                    Revisa el bind-mount <code>S2PRO_MODEL_DIR</code> en docker-compose.
+                  </p>
+                )}
+                {s2ModelsDirExists && s2Models.length === 0 && !s2ModelsLoading && (
+                  <p className="text-xs text-amber-500 mt-1">
+                    No hay GGUF en <code>/models/s2pro</code>. Coloca un fichero <code>s2-pro-&lt;quant&gt;.gguf</code> y pulsa Recargar.
+                  </p>
+                )}
+                {s2ModelsDirExists && !s2TokenizerPresent && (
+                  <p className="text-xs text-amber-500 mt-1">
+                    Falta <code>tokenizer.json</code> en <code>/models/s2pro</code>: el servidor s2.cpp no podrá arrancar.
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  Cambia entre q4_K_M (más rápido, menos VRAM) y q6_K (mejor calidad).
-                  El modelo se carga desde <code>/models/s2pro/s2-pro-{currentS2Quantization}.gguf</code>.
+                  Lista descubierta desde <code>/models/s2pro</code> (bind-mount del dubbing).
+                  Para añadir variantes, descarga el GGUF al directorio del host y recarga.
+                  El modelo activo se carga desde <code>/models/s2pro/s2-pro-{currentS2Quantization}.gguf</code>.
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
